@@ -1,4 +1,5 @@
 import requests
+from lxml import etree
 
 def weather(city = 'Moscow'):
     url = 'https://wttr.in/' + city + '?format=%l:+%c+%C+%t&lang=ru'
@@ -7,19 +8,25 @@ def weather(city = 'Moscow'):
 
 def curs():
     url = 'http://www.cbr.ru/scripts/XML_daily.asp'
-    response = requests.get(url)
-    return response.text
+    response = requests.get(url).text
+    response = response.replace('<?xml version="1.0" encoding="windows-1251"?>','')
+    SiteXml = etree.fromstring(response)
+    result = ''
+    for i in SiteXml.getchildren():
+        temp = i.getchildren()
+        result += temp[2].text + ' ' + temp[-2].text + ' (' + temp[1].text + ') - ' + temp[-1].text + ' Русских Рублей (RUB)\n'
+    return(result)
 
-def cursCurMon(curs1):
-    vivod = ''
+def cursCurMon(currentCurs):
     url = 'http://www.cbr.ru/scripts/XML_daily.asp'
-    response = requests.get(url)
-    if response.status_code != 200:
-        return 'Не удалось подключиться к сайту ЦБ, попробуйте ещё раз'
-    result = response.text.split('<Valute ID="')
-    for i in result:
-        if curs1 in i:
-            vivod = i[i.find('inal>')+5:i.find('</Nomi')] + ' ' + i[i.find('<Name>')+6:i.find('</Name>')] + ' - ' + i[i.find('<Value>')+7:i.find('</Value>')] + ' русских рублей (RUB)'
-
-
-    return vivod
+    response = requests.get(url).text
+    response = response.replace('<?xml version="1.0" encoding="windows-1251"?>', '')
+    SiteXml = etree.fromstring(response)
+    result = ''
+    for i in SiteXml.getchildren():
+        temp = i.getchildren()
+        if temp[1].text == currentCurs:
+            result = temp[2].text + ' ' + temp[-2].text + ' (' + temp[1].text + ') - ' + temp[-1].text + ' Русских Рублей (RUB)\n'
+    if result == '':
+        result = 'Неверный код валюты'
+    return result
