@@ -3,6 +3,7 @@ from lxml import etree
 
 def weather(city = 'Moscow'):
     url = 'https://wttr.in/' + city + '?format=%l:+%c+%C+%t&lang=ru'
+    print(url)
     response = requests.get(url)
     return response.text
 
